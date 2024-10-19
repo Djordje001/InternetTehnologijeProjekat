@@ -8,6 +8,7 @@ import { useParams } from 'react-router-dom';
 import ButtonSeeProfile from './ButtonSeeProfile';
 import ButtonFollow from './ButtonFollow';
 import ButtonUnfollow from './ButtonUnfollow';
+
 import PlacesAutocomplete from 'react-places-autocomplete';
 import {
   geocodeByAddress,
@@ -33,7 +34,9 @@ function ProfilPage({renderAll,setRenderAll}) {
  
     const [content, setContent] = useState('');
     const [file, setFile] = useState(null);
+    
     const [location, setLocation] = useState('');
+
     const[coordinates, setCoordinates] = useState({
       lat: null,
       lng: null
@@ -49,6 +52,7 @@ function ProfilPage({renderAll,setRenderAll}) {
     }
     const handleFileChange = (e) => setFile(e.target.files[0]);
     const handleLocationChange = (e) => setLocation(e.target.value);
+
 
     const handleSelect = async value => {
 

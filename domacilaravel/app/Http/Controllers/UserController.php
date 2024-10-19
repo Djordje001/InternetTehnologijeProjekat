@@ -703,7 +703,7 @@ class UserController extends Controller
     //     $x = Friendship::where('user1_id', $user_id)->count();
     //     return $x;
     // }
-  /*  public function resetPassword(Request $request)
+    /*  public function resetPassword(Request $request)
     {
 
         $validator = Validator::make($request->all(), [
@@ -808,11 +808,12 @@ class UserController extends Controller
 
     }
 
-    public function sendResetLinkEmailApi(Request $request) {
+    public function sendResetLinkEmailApi(Request $request)
+    {
         $request->validate(['email' => 'required|email|exists:users,email']);
 
         $token = Str::random(60);
-        Log::info('Generated Token: ' . $token);
+
         $passwordReset = DB::table('password_resets')->updateOrInsert(
             ['email' => $request->email],
             [
@@ -835,48 +836,47 @@ class UserController extends Controller
     }
 
     public function showResetForm(Request $request, $token = null)
-{
-   //   return view('emails.reset', ['token' => $token]);
+    {
+        //   return view('emails.reset', ['token' => $token]);
 
-   return view('emails.reset', ['token' => $token]);
-
-}
+        return view('emails.reset', ['token' => $token]);
+    }
 
 
     public function resetPassword(Request $request)
-{
-    $request->validate([
-        'token' => 'required',
-        'email' => 'required|email',
-        'password' => 'required|confirmed',
-    ]);
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|confirmed',
+        ]);
 
-    // Retrieve all tokens for the given email
-    $passwordResets = DB::table('password_resets')->where('email', $request->email)->get();
+        // Retrieve all tokens for the given email
+        $passwordResets = DB::table('password_resets')->where('email', $request->email)->get();
 
-    $tokenValid = false;
-    foreach ($passwordResets as $passwordReset) {
-        if (Hash::check($request->token, $passwordReset->token)) {
-            $tokenValid = true;
-            break;
+        $tokenValid = false;
+        foreach ($passwordResets as $passwordReset) {
+            if (Hash::check($request->token, $passwordReset->token)) {
+                $tokenValid = true;
+                break;
+            }
         }
+
+        if (!$tokenValid) {
+            return response()->json(['message' => 'Invalid token'], 400);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'User does not exist'], 404);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Delete password reset tokens for this user
+        DB::table('password_resets')->where(['email' => $request->email])->delete();
+
+        return response()->json(['message' => 'Password successfully reset']);
     }
-
-    if (!$tokenValid) {
-        return response()->json(['message' => 'Invalid token'], 400);
-    }
-
-    $user = User::where('email', $request->email)->first();
-    if (!$user) {
-        return response()->json(['message' => 'User does not exist'], 404);
-    }
-
-    $user->password = Hash::make($request->password);
-    $user->save();
-
-    // Delete password reset tokens for this user
-    DB::table('password_resets')->where(['email'=> $request->email])->delete();
-
-    return response()->json(['message' => 'Password successfully reset']);
-}
 }
